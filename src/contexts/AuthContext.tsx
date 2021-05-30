@@ -28,7 +28,6 @@ export function signOut() {
   destroyCookie(undefined, 'noploy.token');
   destroyCookie(undefined, 'noploy.refreshToken');
   Router.push('/');
-  console.log('deu erro caralho')
 }
 
 export function AuthProvider({ children }) {
@@ -36,17 +35,19 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user;
 
   const { 'noploy.token': token } = parseCookies();
-  const { loading, error, data } = useQuery(PROFILE);
 
   if (token) {
+    const { loading, error, data } = useQuery(PROFILE);
     if (loading) {
       return null;
     }
     if (error) {
       signOut();
+      console.log(error.message, 'message de erro');
     }
     setUser(data.profile);
   }
+
 
 
   async function signIn({ email, password }: SignInCredentials) {

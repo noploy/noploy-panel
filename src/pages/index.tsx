@@ -3,20 +3,13 @@ import { Box, useColorMode, IconButton } from '@chakra-ui/react';
 import { BiMoon, BiSun } from 'react-icons/bi'
 import Link from 'next/link'
 import { AuthContext } from './../contexts/AuthContext';
-import { useQuery } from '@apollo/client';
-import { PROFILE } from './../graphql/profile/queries/profile';
+import { withSSRAuth } from './../Utils/withSSRAuth';
 
 
 export default function Home() {
   const { colorMode, toggleColorMode } = useColorMode();
   const lightTheme = colorMode === 'light';
   const { isAuthenticated, user } = useContext(AuthContext);
-
-  // const { loading, error, data } = useQuery(PROFILE);
-
-  // if (loading) {
-  //   return <h1>Carregando</h1>
-  // }
 
   return (
     <Box>
@@ -32,3 +25,10 @@ export default function Home() {
     </Box>
   )
 }
+
+
+export const getServerSideProps = withSSRAuth(async (ctx) => {
+  return {
+    props: {}
+  }
+});

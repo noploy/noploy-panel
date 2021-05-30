@@ -16,16 +16,11 @@ import { LoginForm } from '../components/Login/LoginForm';
 import { DividerWithText } from './../components/Utils/DividerWithText';
 import { AuthContext } from './../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { GetServerSideProps } from 'next';
+import { parseCookies } from 'nookies';
+import { withSSRGuest } from './../Utils/withSSRGuest';
 
 export default function Login() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useContext(AuthContext);
-
-  console.log(isAuthenticated)
-
-  if (isAuthenticated) {
-    router.push('/');
-  }
 
   return (
     <Box
@@ -61,3 +56,9 @@ export default function Login() {
     </Box>
   )
 }
+
+export const getServerSideProps = withSSRGuest(async (ctx) => {
+  return {
+    props: {}
+  }
+})
