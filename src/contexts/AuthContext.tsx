@@ -2,15 +2,24 @@ import { createContext, useEffect, useState } from "react";
 import { setCookie, parseCookies, destroyCookie } from 'nookies'
 import Router from "next/router";
 import { api } from './../services/api';
+import { useQuery } from "@apollo/client";
+import { PROFILE } from './../graphql/profile/queries/profile';
 
 type SignInCredentials = {
   email: string;
   password: string;
 }
 
+type User = {
+  email: string;
+  name: string;
+};
+
+
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   isAuthenticated: boolean;
+  user: User;
 }
 
 export const AuthContext = createContext({} as AuthContextData);
@@ -19,31 +28,26 @@ export function signOut() {
   destroyCookie(undefined, 'noploy.token');
   destroyCookie(undefined, 'noploy.refreshToken');
   Router.push('/');
+  console.log('deu erro caralho')
 }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-
   const isAuthenticated = !!user;
 
-  useEffect(() => {
-    const { 'noploy.token': token } = parseCookies();
+  const { 'noploy.token': token } = parseCookies();
+  const { loading, error, data } = useQuery(PROFILE);
 
-    // try catch para verificar se o token dele é valido
+  if (token) {
+    if (loading) {
+      return null;
+    }
+    if (error) {
+      signOut();
+    }
+    setUser(data.profile);
+  }
 
-    // if (token) {
-    //   api.get('me').then(response => {
-    //     const { email, permissions, roles } = response.data;
-
-    //     setUser(true);
-    //   }).catch(() => {
-    //     signOut()
-    //   });
-    // }
-
-    // se der catch. Deslogue o usuário. signOut()
-
-  }, []);
 
   async function signIn({ email, password }: SignInCredentials) {
     try {
@@ -77,7 +81,7 @@ export function AuthProvider({ children }) {
 
 
   return (
-    <AuthContext.Provider value={{ signIn, isAuthenticated }}>
+    <AuthContext.Provider value={{ signIn, user, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   )

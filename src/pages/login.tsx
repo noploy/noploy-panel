@@ -19,7 +19,9 @@ import { useRouter } from 'next/router';
 
 export default function Login() {
   const router = useRouter();
-  const { isAuthenticated } = useContext(AuthContext)
+  const { isAuthenticated, user } = useContext(AuthContext);
+
+  console.log(isAuthenticated)
 
   if (isAuthenticated) {
     router.push('/');
