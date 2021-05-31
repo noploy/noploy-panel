@@ -13,6 +13,8 @@ type SignInCredentials = {
 type User = {
   email: string;
   name: string;
+  subscriptions: string[];
+  permissions: string[];
 };
 
 
@@ -20,6 +22,7 @@ type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   isAuthenticated: boolean;
   user: User;
+  signOut: () => void;
 }
 
 export const AuthContext = createContext({} as AuthContextData);
@@ -27,28 +30,24 @@ export const AuthContext = createContext({} as AuthContextData);
 export function signOut() {
   destroyCookie(undefined, 'noploy.token');
   destroyCookie(undefined, 'noploy.refreshToken');
-  Router.push('/');
+  Router.push('/login');
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const isAuthenticated = !!user;
+  const { loading, error, data } = useQuery(PROFILE);
+  const [isAuthenticated, setAuthenticated] = useState(false)
 
-  const { 'noploy.token': token } = parseCookies();
-
-  if (token) {
-    const { loading, error, data } = useQuery(PROFILE);
-    if (loading) {
-      return null;
-    }
+  useEffect(() => {
     if (error) {
       signOut();
-      console.log(error.message, 'message de erro');
     }
-    setUser(data.profile);
-  }
+  }, [error]);
 
-
+  useEffect(() => {
+    if (!loading && !error && data) {
+      setAuthenticated(!loading && data && data.profile)
+    }
+  }, [data])
 
   async function signIn({ email, password }: SignInCredentials) {
     try {
@@ -71,18 +70,18 @@ export function AuthProvider({ children }) {
 
       api.defaults.headers['Authorization'] = `Bearer ${access_token}`;
 
-      setUser(true)
+      setAuthenticated(true)
 
       Router.push('/');
-
     } catch (err) {
+      console.log('errorAuth: ', err);
       return err
     }
   }
 
 
   return (
-    <AuthContext.Provider value={{ signIn, user, isAuthenticated }}>
+    <AuthContext.Provider value={{ signIn, user: data?.profile, isAuthenticated, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -33,17 +33,16 @@ export const LoginForm = () => {
 
 
   const handleLogin = async (data) => {
-
-    await signIn(data);
-
-    toast({
-      title: "Não foi possível efetuar o login",
-      description: "E-mail ou senha incorretos",
-      status: "error",
-      isClosable: true,
-      position: "top-right"
-    });
-
+    const { response }: any = await signIn(data);
+    if (response.data.statusCode === 401) {
+      toast({
+        title: "Não foi possível efetuar o login",
+        description: "E-mail ou senha incorretos",
+        status: "error",
+        isClosable: true,
+        position: "top-right"
+      });
+    }
 
   }
 
