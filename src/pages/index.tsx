@@ -1,48 +1,35 @@
-import { useContext } from 'react';
-import { Box, useColorMode, IconButton, Flex, useColorModeValue as mode } from '@chakra-ui/react';
-import { BiMoon, BiSun } from 'react-icons/bi'
-import Link from 'next/link'
-import { AuthContext } from './../contexts/AuthContext';
-import { withSSRAuth } from './../Utils/withSSRAuth';
-import { Sidebar } from './../components/Sidebar/index';
+import { useContext } from "react";
+import {
+  Box,
+  SimpleGrid,
+  Flex,Heading,
+} from "@chakra-ui/react";
+import { withSSRAuth } from "../utils/withSSRAuth";
+import { Main } from "../components/Main";
+import { Stat } from '../components/Stat';
 
 export default function Home() {
-  const { colorMode, toggleColorMode } = useColorMode();
-  const lightTheme = colorMode === 'light';
-  const { } = useContext(AuthContext);
-
   return (
-    // <Box>
-    //   <IconButton
-    //     size="sm"
-    //     fontSize="18px"
-    //     onClick={toggleColorMode}
-    //     aria-label="Search database"
-    //     icon={lightTheme ? <BiMoon /> : <BiSun />}
-    //   />
-    //   <Link href="/login">login</Link>
-    // </Box>
-
-    <Box height="100vh" overflow="hidden" position="relative">
-      <Flex h="full" id="app-container">
-        <Sidebar />
-
-        <Box bg={mode('gray.50', 'gray.800')} flex="1" p="6">
-          <Box
-            w="full"
-            h="full"
-            rounded="lg"
-            border="3px dashed currentColor"
-            color={mode('gray.200', 'gray.700')}
-          />
-        </Box>
-      </Flex>
-    </Box>
-  )
+    <Main p="6">
+      <Box w="100%" maxW="7xl" mx="auto">
+        <Flex mb="4" align="center" w="100%" justify="space-beetwen">
+          <Heading fontSize="3xl" as="h1">
+            Dashboard
+          </Heading>
+        </Flex>
+        <SimpleGrid columns={{ base: 1, md: 4 }} spacing="6">
+          <Stat label="Servers" value="3" link="/servers" />
+          <Stat label="Projects" value="1" link="/projects" />
+          <Stat label="Applications" value="1" link="/applications" />
+          <Stat label="SSH Keys" value="3" link="/" />
+        </SimpleGrid>
+      </Box>
+    </Main>
+  );
 }
 
 export const getServerSideProps = withSSRAuth(async (ctx) => {
   return {
-    props: {}
-  }
+    props: {},
+  };
 });

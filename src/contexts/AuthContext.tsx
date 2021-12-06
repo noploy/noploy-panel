@@ -1,14 +1,15 @@
 import { createContext, useEffect, useState } from "react";
-import { setCookie, parseCookies, destroyCookie } from 'nookies'
+import { useToast } from "@chakra-ui/react";
+import { setCookie, parseCookies, destroyCookie } from "nookies";
 import Router from "next/router";
-import { api } from './../services/api';
+import { api } from "./../services/api";
 import { useQuery } from "@apollo/client";
-import { PROFILE } from './../graphql/profile/queries/profile';
+import { PROFILE } from "./../graphql/profile/queries/profile";
 
 type SignInCredentials = {
   email: string;
   password: string;
-}
+};
 
 type User = {
   email: string;
@@ -17,25 +18,25 @@ type User = {
   permissions: string[];
 };
 
-
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   isAuthenticated: boolean;
   user: User;
   signOut: () => void;
-}
+};
 
 export const AuthContext = createContext({} as AuthContextData);
 
 export function signOut() {
-  destroyCookie(undefined, 'noploy.token');
-  destroyCookie(undefined, 'noploy.refreshToken');
-  Router.push('/login');
+  destroyCookie(undefined, "noploy.token");
+  destroyCookie(undefined, "noploy.refreshToken");
+  Router.push("/login");
 }
 
 export function AuthProvider({ children }) {
   const { loading, error, data } = useQuery(PROFILE);
-  const [isAuthenticated, setAuthenticated] = useState(false)
+  const [isAuthenticated, setAuthenticated] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (error) {
@@ -45,44 +46,52 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!loading && !error && data) {
-      setAuthenticated(!loading && data && data.profile)
+      setAuthenticated(!loading && data.profile);
     }
-  }, [data])
+  }, [data]);
 
   async function signIn({ email, password }: SignInCredentials) {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post("/auth/login", {
         email,
-        password
+        password,
       });
 
       const { access_token, refresh_token } = response.data;
 
-      setCookie(undefined, 'noploy.token', access_token, {
+      setCookie(undefined, "noploy.token", access_token, {
         maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: '/'
+        path: "/",
       });
 
-      setCookie(undefined, 'noploy.refreshToken', refresh_token, {
+      setCookie(undefined, "noploy.refreshToken", refresh_token, {
         maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: '/'
+        path: "/",
       });
 
-      api.defaults.headers['Authorization'] = `Bearer ${access_token}`;
+      api.defaults.headers["Authorization"] = `Bearer ${access_token}`;
 
-      setAuthenticated(true)
+      setAuthenticated(true);
 
-      Router.push('/');
+      Router.push("/");
     } catch (err) {
-      console.log('errorAuth: ', err);
-      return err
+      toast({
+        title: "Não foi possível efetuar o login",
+        description: "E-mail ou senha incorretos",
+        status: "error",
+        isClosable: true,
+        position: "top-right",
+      });
+      console.log("errorAuth: ", err);
+      return err;
     }
   }
 
-
   return (
-    <AuthContext.Provider value={{ signIn, user: data?.profile, isAuthenticated, signOut }}>
+    <AuthContext.Provider
+      value={{ signIn, user: data?.profile, isAuthenticated, signOut }}
+    >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
